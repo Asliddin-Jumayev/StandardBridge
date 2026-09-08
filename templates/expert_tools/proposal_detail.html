@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ proposal.company_name }} — Taklifnoma{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <a href="{% url 'proposal_list' %}" class="text-blue-600 hover:underline text-sm">← {{ T.et_proposals }}</a>
+      <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ proposal.company_name }}</h1>
+      <p class="text-gray-500 text-sm">{{ proposal.standard }} · {{ proposal.created_at|date:"d.m.Y" }}</p>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="copyRaw()" class="border border-gray-200 text-gray-600 px-3 py-2 rounded-xl text-sm hover:bg-gray-50 transition">
+        📋 {{ T.proposal_copy_btn }}
+      </button>
+      <a href="{% url 'proposal_print' proposal.pk %}" target="_blank"
+         class="border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 transition flex items-center gap-2">
+        🖨️ {{ T.et_proposal_print }}
+      </a>
+      <a href="{% url 'edit_proposal' proposal.pk %}"
+         class="gradient-bg text-white px-4 py-2 rounded-xl text-sm font-medium hover:opacity-90 transition">
+        ✏️ {{ T.et_proposal_edit }}
+      </a>
+    </div>
+  </div>
+
+  <!-- Meta strip -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-gray-100 p-3 text-center">
+      <p class="text-xs text-gray-400 mb-0.5">{{ T.et_proposal_status }}</p>
+      <span class="text-sm font-semibold
+        {% if proposal.status == 'accepted' %}text-green-600
+        {% elif proposal.status == 'rejected' %}text-red-600
+        {% elif proposal.status == 'sent' %}text-blue-600
+        {% else %}text-gray-500{% endif %}">
+        {% if proposal.status == 'accepted' %}✅ {{ T.et_proposal_accepted }}
+        {% elif proposal.status == 'rejected' %}❌ {{ T.et_proposal_rejected }}
+        {% elif proposal.status == 'sent' %}📤 {{ T.et_proposal_sent }}
+        {% else %}📝 {{ T.et_proposal_draft }}{% endif %}
+      </span>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-3 text-center">
+      <p class="text-xs text-gray-400 mb-0.5">{{ T.et_proposal_price_min }}</p>
+      <p class="text-sm font-semibold text-gray-800">
+        {% if proposal.price_min or proposal.price_max %}${{ proposal.price_min|floatformat:0 }}–${{ proposal.price_max|floatformat:0 }}
+        {% else %}—{% endif %}
+      </p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-3 text-center">
+      <p class="text-xs text-gray-400 mb-0.5">{{ T.et_proposal_duration }}</p>
+      <p class="text-sm font-semibold text-gray-800">{{ proposal.duration_days }} {{ T.days_word }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-3 text-center">
+      <p class="text-xs text-gray-400 mb-0.5">{{ T.et_proposal_valid }}</p>
+      <p class="text-sm font-semibold text-gray-800">
+        {% if proposal.valid_until %}{{ proposal.valid_until|date:"d.m.Y" }}{% else %}—{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Document paper -->
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <!-- Header band -->
+    <div class="gradient-bg px-8 py-4 flex items-center justify-between">
+      <div>
+        <p class="text-white font-bold">{{ T.proposal_commercial_title }}</p>
+        <p class="text-white/70 text-xs mt-0.5">{{ proposal.standard }} · {{ proposal.company_name }}</p>
+      </div>
+      <div class="text-right text-white/70 text-xs">
+        <p>{{ proposal.created_at|date:"d.m.Y" }}</p>
+        {% if proposal.valid_until %}<p>{{ T.proposal_validity_lbl }} {{ proposal.valid_until|date:"d.m.Y" }}</p>{% endif %}
+      </div>
+    </div>
+
+    <!-- Rendered proposal body -->
+    <div id="proposalContent" class="doc-paper px-10 py-8"></div>
+  </div>
+
+  <textarea id="docRaw" class="hidden">{{ proposal.content }}</textarea>
+
+  <!-- Status update bar -->
+  <div class="mt-4 bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4 flex-wrap">
+    <p class="text-sm text-gray-500 shrink-0">{{ T.et_proposal_update_status }}:</p>
+    <form method="POST" action="{% url 'edit_proposal' proposal.pk %}" class="flex gap-2 items-center">
+      {% csrf_token %}
+      <input type="hidden" name="content" value="{{ proposal.content }}">
+      <select name="status" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="draft" {% if proposal.status == 'draft' %}selected{% endif %}>📝 {{ T.et_proposal_draft }}</option>
+        <option value="sent" {% if proposal.status == 'sent' %}selected{% endif %}>📤 {{ T.et_proposal_sent }}</option>
+        <option value="accepted" {% if proposal.status == 'accepted' %}selected{% endif %}>✅ {{ T.et_proposal_accepted }}</option>
+        <option value="rejected" {% if proposal.status == 'rejected' %}selected{% endif %}>❌ {{ T.et_proposal_rejected }}</option>
+      </select>
+      <button type="submit" class="gradient-bg text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:opacity-90 transition">{{ T.save }}</button>
+    </form>
+    <form method="POST" action="{% url 'delete_proposal' proposal.pk %}" class="ml-auto"
+          onsubmit="return confirm('{{ T.delete_btn }}?')">
+      {% csrf_token %}
+      <button type="submit" class="text-red-400 hover:text-red-600 text-sm">{{ T.delete_btn }}</button>
+    </form>
+  </div>
+</div>
+
+<style>
+.doc-paper { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.8; color: #1f2937; }
+.doc-paper h1 { font-size: 1.35rem; font-weight: 800; color: #111827; margin: 1.8rem 0 0.6rem; padding-bottom: 0.4rem; border-bottom: 2px solid #2563eb; }
+.doc-paper h2 { font-size: 1.1rem; font-weight: 700; color: #1e3a5f; margin: 1.5rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 1px solid #e5e7eb; }
+.doc-paper h3 { font-size: 0.95rem; font-weight: 700; color: #374151; margin: 1.2rem 0 0.4rem; }
+.doc-paper p  { margin: 0.65rem 0; }
+.doc-paper ul { list-style: none; padding-left: 0; margin: 0.6rem 0; }
+.doc-paper ul li { padding: 0.25rem 0 0.25rem 1.4rem; position: relative; }
+.doc-paper ul li::before { content: "▸"; color: #2563eb; position: absolute; left: 0; font-size: 0.75rem; top: 0.38rem; }
+.doc-paper ol { counter-reset: ol-c; padding-left: 0; margin: 0.6rem 0; }
+.doc-paper ol li { counter-increment: ol-c; padding: 0.25rem 0 0.25rem 1.8rem; position: relative; }
+.doc-paper ol li::before { content: counter(ol-c) "."; color: #2563eb; font-weight: 700; position: absolute; left: 0; }
+.doc-paper strong { font-weight: 700; color: #111827; }
+.doc-paper em { font-style: italic; color: #4b5563; }
+.doc-paper blockquote { border-left: 3px solid #2563eb; padding: 0.5rem 1rem; margin: 1rem 0; color: #475569; background: #f8fafc; border-radius: 0 6px 6px 0; }
+.doc-paper hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+.doc-paper table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.875rem; }
+.doc-paper thead tr { background: #f1f5f9; }
+.doc-paper th { padding: 0.6rem 0.8rem; font-weight: 600; color: #374151; border: 1px solid #e2e8f0; text-align: left; }
+.doc-paper td { padding: 0.55rem 0.8rem; border: 1px solid #e2e8f0; }
+.doc-paper tr:nth-child(even) td { background: #f9fafb; }
+</style>
+
+{% endblock %}
+
+<div id="copy-toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-5 py-2.5 rounded-full shadow-lg opacity-0 translate-y-4 transition-all duration-300 pointer-events-none z-50"></div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script>
+marked.setOptions({ breaks: true, gfm: true });
+document.getElementById('proposalContent').innerHTML = DOMPurify.sanitize(marked.parse(document.getElementById('docRaw').value));
+
+function copyRaw() {
+  navigator.clipboard.writeText(document.getElementById('docRaw').value)
+    .then(() => showToast('{{ T.copied_msg }}'));
+}
+function showToast(msg) {
+  var t = document.getElementById('copy-toast');
+  t.textContent = msg;
+  t.classList.remove('opacity-0', 'translate-y-4');
+  t.classList.add('opacity-100', 'translate-y-0');
+  setTimeout(function(){ t.classList.remove('opacity-100','translate-y-0'); t.classList.add('opacity-0','translate-y-4'); }, 2000);
+}
+</script>
+{% endblock %}

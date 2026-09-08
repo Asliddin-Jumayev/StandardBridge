@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}{{ T.notifications_title }} — StandardBridge{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">{{ T.notifications_title }}</h1>
+            <p class="text-gray-600 mt-1">{{ T.all_messages }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="?" class="px-4 py-2 rounded-xl text-sm font-medium transition
+                {% if not filter_unread %}gradient-bg text-white{% else %}border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">
+                {{ T.notif_all }}
+            </a>
+            <a href="?filter=unread" class="px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1.5
+                {% if filter_unread %}gradient-bg text-white{% else %}border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">
+                {{ T.notif_unread }}
+                {% if unread_count > 0 %}<span class="{% if filter_unread %}bg-white/30{% else %}bg-blue-100 text-blue-700{% endif %} rounded-full px-1.5 py-0.5 text-xs font-bold">{{ unread_count }}</span>{% endif %}
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-3xl space-y-4">
+        {% for notif in notifications %}
+        {% if notif.link %}
+        <a href="{{ notif.link }}" class="block bg-white rounded-2xl p-6 border border-gray-100 card-hover
+            {% if not notif.is_read %}border-l-4 border-l-blue-500{% endif %} hover:shadow-md transition">
+        {% else %}
+        <div class="bg-white rounded-2xl p-6 border border-gray-100
+            {% if not notif.is_read %}border-l-4 border-l-blue-500{% endif %}">
+        {% endif %}
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                    {% if notif.is_read %}bg-gray-100{% else %}bg-blue-100{% endif %}">
+                    <svg class="w-5 h-5 {% if notif.is_read %}text-gray-400{% else %}text-blue-600{% endif %}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-bold {% if notif.is_read %}text-gray-700{% else %}text-gray-900{% endif %}">{{ notif.title }}</h3>
+                        <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+                            {% if notif.link %}<span class="text-blue-400 text-xs">→</span>{% endif %}
+                            <span class="text-gray-400 text-xs">{{ notif.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-1">{{ notif.message }}</p>
+                </div>
+            </div>
+        {% if notif.link %}</a>{% else %}</div>{% endif %}
+        {% empty %}
+        <div class="bg-white rounded-2xl p-12 border border-gray-100 text-center">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <p class="text-gray-400 text-lg mb-2">{{ T.no_notifications }}</p>
+            <p class="text-gray-400 text-sm mb-6">{{ T.notif_empty_desc }}</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                {% if request.user.role == 'entrepreneur' %}
+                <a href="{% url 'select_industry' %}" class="gradient-bg text-white px-5 py-2 rounded-xl text-sm font-medium hover:opacity-90 transition">
+                    {{ T.notif_start_analysis }}
+                </a>
+                {% endif %}
+                {% if request.user.telegram_chat_id %}
+                <span class="text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-lg">{{ T.notif_telegram_connected }}</span>
+                {% else %}
+                <a href="{% url 'telegram_connect' %}" class="text-sm text-blue-600 border border-blue-200 px-4 py-2 rounded-xl hover:bg-blue-50 transition">
+                    {{ T.notif_telegram_connect }}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="max-w-3xl mt-6 flex items-center justify-center gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition">{{ T.notif_prev }}</a>
+        {% endif %}
+        <span class="text-sm text-gray-500">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition">{{ T.notif_next }}</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

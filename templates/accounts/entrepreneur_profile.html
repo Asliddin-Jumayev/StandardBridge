@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ T.my_profile_title }} — StandardBridge{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-10">
+
+    <!-- Sarlavha -->
+    <div class="mb-8">
+        <a href="{% url 'entrepreneur_dashboard' %}" class="text-sm text-gray-400 hover:text-gray-600 transition">← {{ T.dashboard }}</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-3">{{ T.my_profile_title }}</h1>
+    </div>
+
+    <form method="post" id="profileForm">
+        {% csrf_token %}
+
+        <!-- Avatar + ism -->
+        <div class="flex items-center gap-5 mb-8">
+            <div class="relative group flex-shrink-0">
+                {% if user.avatar %}
+                <img id="profile-avatar-img" src="{{ user.avatar.url }}" alt="avatar"
+                     class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+                {% else %}
+                <div id="profile-avatar-initials"
+                     class="w-16 h-16 rounded-full gradient-bg flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                </div>
+                {% endif %}
+                <label for="profile-avatar-input"
+                    class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center
+                           opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </label>
+                <input type="file" id="profile-avatar-input" accept="image/*" class="hidden"
+                       onchange="sbUploadAvatar(this); sbSyncProfileAvatar(this)">
+            </div>
+            <div>
+                <p class="font-semibold text-gray-900">{{ user.get_full_name }}</p>
+                <p class="text-gray-400 text-sm">{{ user.email }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ T.avatar_change_hint }}</p>
+            </div>
+        </div>
+
+        <!-- Shaxsiy -->
+        <div class="mb-6">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">{{ T.personal_info }}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1.5">{{ T.first_name }}</label>
+                    <input type="text" name="first_name" value="{{ user.first_name }}"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1.5">{{ T.last_name }}</label>
+                    <input type="text" name="last_name" value="{{ user.last_name }}"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1.5">{{ T.phone }}</label>
+                    <input type="text" name="phone" value="{{ user.phone }}"
+                        placeholder="+998 90 123 45 67"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1.5">{{ T.region_field }}</label>
+                    <select name="region"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">{{ T.select_placeholder }}</option>
+                        {% for value, label in regions %}
+                        <option value="{{ value }}" {% if user.region == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 my-6"></div>
+
+        <!-- Kompaniya -->
+        <div class="mb-6">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">{{ T.professional_info }}</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1.5">{{ T.company_name }}</label>
+                    <input type="text" name="company_name" value="{{ user.company_name }}"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1.5">{{ T.bio_lbl }}</label>
+                    <textarea name="company_description" rows="3"
+                        placeholder="..."
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">{{ profile.company_description }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 my-6"></div>
+
+        <!-- Telegram -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-blue-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-2.04 9.613c-.15.676-.543.84-1.1.523l-3.04-2.24-1.468 1.413c-.162.162-.298.298-.61.298l.218-3.085 5.624-5.08c.245-.218-.053-.338-.378-.12L7.44 14.42l-2.98-.93c-.648-.202-.66-.648.135-.96l11.637-4.487c.54-.195 1.013.12.33.205z"/>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-gray-800">Telegram</p>
+                    <p class="text-xs text-gray-400">{{ T.tg_connect_desc }}</p>
+                </div>
+            </div>
+            {% if user.telegram_chat_id %}
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full border border-green-200">✓ {{ T.tg_linked }}</span>
+                <form method="post" action="{% url 'telegram_disconnect' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs text-red-400 hover:text-red-600 transition">{{ T.tg_disconnect_btn }}</button>
+                </form>
+            </div>
+            {% else %}
+            <a href="{% url 'telegram_connect' %}"
+               class="text-sm text-blue-600 border border-blue-200 px-4 py-2 rounded-xl hover:bg-blue-50 transition font-medium flex-shrink-0">
+                {{ T.tg_connect_btn }}
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Login ma'lumotlari (readonly) -->
+        <div class="bg-gray-50 rounded-2xl px-5 py-4 mb-8">
+            <p class="text-xs text-gray-400 mb-0.5">{{ T.email }}</p>
+            <p class="text-sm font-medium text-gray-700">{{ user.email }}</p>
+        </div>
+
+        <!-- Tugmalar -->
+        <div class="flex gap-3">
+            <button type="submit" id="profileSaveBtn"
+                onclick="this.disabled=true; this.textContent='{{ T.saving }}...'; this.closest('form').submit();"
+                class="gradient-bg text-white px-8 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-60">
+                {{ T.save }}
+            </button>
+            <a href="{% url 'entrepreneur_dashboard' %}"
+                class="px-6 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 transition">
+                {{ T.cancel_btn }}
+            </a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

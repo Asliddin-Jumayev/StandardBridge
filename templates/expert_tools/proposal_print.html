@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>{{ T.print_proposal_type }} — {{ proposal.company_name }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #111; background: #fff; }
+  .page { max-width: 800px; margin: 0 auto; padding: 48px 48px 64px; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 28px; }
+  .brand { font-size: 20px; font-weight: 800; color: #2563eb; }
+  .brand span { color: #111; }
+  .header-right { text-align: right; font-size: 11px; color: #555; }
+
+  .title-block { margin-bottom: 28px; }
+  .doc-type { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 4px; }
+  h1 { font-size: 24px; font-weight: 800; color: #111; }
+  .subtitle { color: #555; font-size: 14px; margin-top: 4px; }
+
+  .meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .meta-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; }
+  .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 3px; }
+  .meta-value { font-size: 15px; font-weight: 700; color: #111; }
+
+  .content { line-height: 1.7; color: #222; }
+  .content h1 { font-size: 18px; font-weight: 700; margin: 20px 0 8px; color: #1e3a5f; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+  .content h2 { font-size: 15px; font-weight: 700; margin: 16px 0 6px; color: #1e3a5f; }
+  .content h3 { font-size: 13px; font-weight: 700; margin: 12px 0 4px; }
+  .content p { margin-bottom: 10px; }
+  .content ul, .content ol { margin: 8px 0 12px 24px; }
+  .content li { margin-bottom: 4px; }
+  .content strong { color: #111; }
+
+  .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 11px; color: #888; }
+  .sign-block { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .sign-line { border-top: 1px solid #999; padding-top: 6px; font-size: 11px; color: #666; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand">Standard<span>Bridge</span></div>
+      <div style="font-size:11px;color:#888;margin-top:2px;">{{ T.print_iso_consulting }}</div>
+    </div>
+    <div class="header-right">
+      <div>{{ T.print_date_lbl }}: {{ today|date:"d.m.Y" }}</div>
+      {% if proposal.valid_until %}
+      <div>{{ T.print_valid_until }}: {{ proposal.valid_until|date:"d.m.Y" }}</div>
+      {% endif %}
+      <div style="margin-top:4px;">{{ T.print_expert_lbl }}: {{ expert.get_full_name }}</div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="title-block">
+    <div class="doc-type">{{ T.print_proposal_type }}</div>
+    <h1>{{ proposal.standard }} {{ T.print_certification_of }}</h1>
+    <div class="subtitle">{{ proposal.company_name }}{% if proposal.contact_person %} · {{ proposal.contact_person }}{% endif %}</div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-grid">
+    <div class="meta-card">
+      <div class="meta-label">{{ T.print_price_range }}</div>
+      <div class="meta-value">
+        {% if proposal.price_min or proposal.price_max %}
+          ${{ proposal.price_min|floatformat:0 }} – ${{ proposal.price_max|floatformat:0 }}
+        {% else %}{{ T.print_negotiable }}{% endif %}
+      </div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">{{ T.print_est_duration }}</div>
+      <div class="meta-value">{{ proposal.duration_days }} {{ T.et_step_days }}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">{{ T.print_standard_lbl }}</div>
+      <div class="meta-value">{{ proposal.standard }}</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content" id="proposal-body"></div>
+  <script id="proposal-raw" type="text/plain">{{ proposal.content }}</script>
+
+  <!-- Signatures -->
+  <div class="sign-block">
+    <div>
+      <p style="font-size:12px;margin-bottom:32px;color:#555;">{{ T.print_consultant }}:</p>
+      <div class="sign-line">{{ expert.get_full_name }} {{ T.print_sign_only }}</div>
+    </div>
+    <div>
+      <p style="font-size:12px;margin-bottom:32px;color:#555;">{{ T.print_client_lbl }}:</p>
+      <div class="sign-line">{{ proposal.company_name }} {{ T.print_sign_only }}</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>StandardBridge — standardbridge.uz</span>
+    <span>{{ T.print_doc_created }} {{ today|date:"d.m.Y" }}</span>
+  </div>
+</div>
+
+<div class="no-print" style="position:fixed;top:16px;right:16px;z-index:100;">
+  <button onclick="window.print()" style="background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">{{ T.print_pdf_btn }}</button>
+  <button onclick="window.close()" style="background:#f3f4f6;color:#374151;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;margin-left:8px;">{{ T.print_close_btn }}</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script>
+marked.setOptions({ breaks: true, gfm: true });
+const raw = document.getElementById('proposal-raw').textContent;
+document.getElementById('proposal-body').innerHTML = DOMPurify.sanitize(marked.parse(raw));
+</script>
+</body>
+</html>

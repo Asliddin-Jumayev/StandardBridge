@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block no_dark_override %}<script>document.documentElement.classList.remove('dark');</script>{% endblock %}
+{% block title %}{{ T.expert_profile_title }} — StandardBridge{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <nav class="flex items-center gap-1.5 text-sm text-gray-400 mb-3">
+            <a href="{% url 'project_list' %}" class="hover:text-blue-600 transition">{{ T.experts_title }}</a>
+            <span>›</span>
+            <span class="text-gray-700 font-medium">{{ expert_user.get_full_name }}</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-gray-900">{{ T.expert_profile_title }}</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Chap — mutaxassis info -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                {% if expert_user.avatar %}
+                <img src="{{ expert_user.avatar.url }}" alt="{{ expert_user.get_full_name }}"
+                     class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 border-gray-200">
+                {% else %}
+                <div class="w-20 h-20 rounded-full gradient-bg flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white font-bold text-2xl">
+                        {{ expert_user.first_name|first }}{{ expert_user.last_name|first }}
+                    </span>
+                </div>
+                {% endif %}
+                <h2 class="font-bold text-gray-900 text-xl">{{ expert_user.get_full_name }}</h2>
+                {% if expert_profile %}
+                <p class="text-gray-500 text-sm mt-1">{{ expert_profile.get_region_display }}</p>
+                <div class="mt-3 flex flex-wrap gap-2 justify-center">
+                    {% if expert_profile.is_available %}
+                    <span class="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full font-medium">{{ T.available_lbl }}</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-500 text-sm px-3 py-1 rounded-full font-medium">{{ T.busy_lbl }}</span>
+                    {% endif %}
+                    {% if expert_profile.is_verified %}
+                    <span class="bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ T.verified_lbl }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if expert_profile %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-4">{{ T.statistics_lbl }}</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 text-sm">{{ T.experience_lbl }}</span>
+                        <span class="font-medium">{{ expert_profile.experience_years }} {{ T.years_word }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 text-sm">{{ T.completed_proj_lbl }}</span>
+                        <span class="font-medium">{{ expert_profile.total_projects }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 text-sm">{{ T.rating_lbl }}</span>
+                        <span class="font-medium text-yellow-500">{{ expert_profile.rating }} ⭐</span>
+                    </div>
+                    {% if expert_profile.phone and request.user.is_authenticated %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-500 text-sm">{{ T.phone_lbl }}</span>
+                        <span class="font-medium text-blue-600">{{ expert_profile.phone }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- O'ng — batafsil + tahlil yuborish -->
+        <div class="lg:col-span-2 space-y-6">
+
+            {% if expert_profile %}
+            {% if expert_profile.bio %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-3">{{ T.about_me }}</h3>
+                <p class="text-gray-600">{{ expert_profile.bio }}</p>
+            </div>
+            {% endif %}
+
+            {% if expert_profile.specializations %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-3">{{ T.specializations_lbl }}</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for spec in expert_profile.specializations.split %}
+                    <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">{{ spec }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if expert_profile.certificates or expert_profile.cert_number %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-3">{{ T.certificates_lbl }}</h3>
+                {% if expert_profile.cert_number %}
+                <div class="flex items-start gap-3 mb-3 p-3 bg-blue-50 rounded-xl">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                    <div>
+                        <p class="text-sm font-semibold text-blue-800">{{ expert_profile.cert_number }}</p>
+                        {% if expert_profile.issuing_body %}<p class="text-xs text-blue-600 mt-0.5">{{ expert_profile.issuing_body }}</p>{% endif %}
+                        {% if expert_profile.cert_expiry %}<p class="text-xs text-gray-500 mt-0.5">{{ T.admin_cert_expiry }} {{ expert_profile.cert_expiry|date:"d.m.Y" }}</p>{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if expert_profile.certificates %}
+                <p class="text-gray-600 whitespace-pre-line text-sm">{{ expert_profile.certificates }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <!-- Baholar -->
+            {% if reviews %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-gray-900">{{ T.reviews_lbl }}</h3>
+                    <div class="flex items-center gap-1">
+                        <span class="text-yellow-400 text-lg">⭐</span>
+                        <span class="font-bold text-gray-900">{% if expert_profile %}{{ expert_profile.rating|floatformat:1 }}{% endif %}</span>
+                        <span class="text-gray-400 text-sm">({{ reviews|length }})</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    {% for review in reviews %}
+                    <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-medium text-gray-800 text-sm">{{ review.entrepreneur.get_full_name }}</span>
+                            <div class="flex gap-0.5">
+                                {% for i in "12345" %}
+                                <span class="text-sm {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-200{% endif %}">★</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if review.comment %}
+                        <p class="text-gray-600 text-sm">{{ review.comment }}</p>
+                        {% endif %}
+                        <p class="text-gray-400 text-xs mt-1">{{ review.created_at|date:"d.m.Y" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tahlil yuborish -->
+            {% if not request.user.is_authenticated %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <h3 class="font-bold text-gray-900 mb-2">{{ T.send_analysis_title }}</h3>
+                <p class="text-gray-500 text-sm mb-4">{{ T.login_to_send_analysis|default:"Mutaxassisga tahlil yuborish uchun tizimga kiring" }}</p>
+                <div class="flex gap-3 justify-center">
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="gradient-bg text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition">{{ T.login }}</a>
+                    <a href="{% url 'register' %}" class="border-2 border-blue-600 text-blue-600 px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-50 transition">{{ T.register }}</a>
+                </div>
+            </div>
+            {% elif not request.user.is_expert %}
+            <div class="bg-white rounded-2xl p-6 border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-2">{{ T.send_analysis_title }}</h3>
+                <p class="text-gray-500 text-sm mb-2">{{ T.send_analysis_sub }}</p>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 mb-4 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="text-blue-700 text-xs">Bu faqat so'rov — hech qanday majburiyat yo'q. Mutaxassis narx belgilaydi, siz qabul qilasiz yoki rad etasiz. To'lov faqat ikki tomon kelishgandan keyin.</p>
+                </div>
+
+                {% if analyses %}
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ T.choose_analysis }}</label>
+                        <div class="space-y-3">
+                            {% for analysis in analyses %}
+                            <label class="cursor-pointer block">
+                                <input type="radio" name="analysis_id" value="{{ analysis.pk }}"
+                                    class="hidden peer"
+                                    {% if forloop.first %}checked{% endif %}>
+                                <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50 border-2 border-gray-200 rounded-xl p-4 transition-all">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium text-gray-900">
+                                                {{ analysis.local_standard.code }} → {{ analysis.target_standard.code }}
+                                            </p>
+                                            <p class="text-gray-500 text-xs mt-1">
+                                                {{ analysis.created_at|date:"d.m.Y" }} •
+                                                {{ analysis.gaps.count }} gap
+                                            </p>
+                                        </div>
+                                        <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex-shrink-0"></div>
+                                    </div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ T.extra_info }}</label>
+                        <textarea name="message" rows="3"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm"
+                            placeholder="..."></textarea>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full gradient-bg text-white py-3 rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        {{ T.send_analysis_btn }}
+                    </button>
+                </form>
+                {% else %}
+                <div class="bg-gray-50 rounded-xl p-6 text-center">
+                    <p class="text-gray-500 mb-4">{{ T.no_analyses_yet }}</p>
+                    <a href="{% url 'select_industry' %}"
+                        class="gradient-bg text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition inline-block">
+                        {{ T.do_analysis_btn }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

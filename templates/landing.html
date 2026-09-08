@@ -1,0 +1,1099 @@
+{% extends 'base.html' %}
+{% block no_dark_override %}<script>document.documentElement.classList.remove('dark');</script>{% endblock %}
+{% block title %}{{ T.landing_page_title }}{% endblock %}
+{% block meta_description %}{{ T.landing_meta_desc }}{% endblock %}
+{% block og_title %}{{ T.landing_page_title }}{% endblock %}
+{% block og_description %}{{ T.landing_meta_desc }}{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#lr{font-family:'Inter',sans-serif;background:#050a14;color:#fff;overflow-x:hidden}
+
+/* ── Noise texture ── */
+#lr::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
+
+/* ── Scroll progress bar ── */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#06b6d4);z-index:10000;transition:width .1s linear}
+
+/* ── Custom cursor ── */
+#sb-cursor-ring{position:fixed;pointer-events:none;z-index:99998;width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(96,165,250,.5);transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s,opacity .3s;mix-blend-mode:screen;will-change:left,top}
+#sb-cursor-dot{position:fixed;pointer-events:none;z-index:99999;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#93c5fd,#60a5fa);transform:translate(-50%,-50%);transition:opacity .3s;will-change:left,top}
+#sb-cursor-ring.hovering{width:56px;height:56px;border-color:rgba(139,92,246,.7);background:rgba(139,92,246,.06)}
+#sb-cursor-ring.clicking{width:28px;height:28px;border-color:rgba(52,211,153,.9)}
+
+/* ── Parallax scrolling layers ── */
+.parallax-slow{will-change:transform}
+.parallax-mid{will-change:transform}
+.parallax-fast{will-change:transform}
+
+/* ── Split text entrance ── */
+@keyframes letterUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.split-text-done .letter{display:inline-block;animation:letterUp .55s cubic-bezier(.16,1,.3,1) both}
+
+/* ── Navbar ── */
+#lnav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,backdrop-filter .3s}
+#lnav.scrolled{background:rgba(5,10,20,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo img{width:32px;height:32px;border-radius:8px}
+.nav-logo span{font-weight:800;font-size:18px;color:#fff;letter-spacing:-.5px}
+.nav-right{display:flex;align-items:center;gap:12px}
+.lang-btn{font-size:12px;padding:4px 10px;border-radius:6px;font-weight:700;border:none;cursor:pointer;transition:.2s}
+.lang-btn.active{background:#fff;color:#1d4ed8}
+.lang-btn:not(.active){background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.lang-btn:not(.active):hover{color:#fff;background:rgba(255,255,255,.15)}
+.nav-login{color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;font-weight:500;transition:.2s}
+.nav-login:hover{color:#fff}
+.nav-cta{background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-weight:700;font-size:14px;padding:8px 20px;border-radius:10px;text-decoration:none;transition:.2s;box-shadow:0 4px 20px rgba(59,130,246,.3)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(59,130,246,.45);color:#fff}
+
+/* ── Hero ── */
+#hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:80px 0 60px;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-glow-1{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.18),transparent 70%);top:-200px;left:-100px;animation:glow1 8s ease-in-out infinite alternate;pointer-events:none}
+.hero-glow-2{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.14),transparent 70%);bottom:-150px;right:-50px;animation:glow1 10s ease-in-out infinite alternate-reverse;pointer-events:none}
+.hero-glow-3{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.12),transparent 70%);top:40%;left:40%;animation:glow1 6s ease-in-out infinite alternate;pointer-events:none}
+@keyframes glow1{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.15) translate(30px,-20px)}}
+.hero-inner{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:2}
+@media(max-width:900px){.hero-inner{grid-template-columns:1fr}.hero-right{display:none}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#60a5fa;padding:6px 16px;border-radius:100px;font-size:13px;font-weight:600;margin-bottom:28px}
+.hero-badge-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;box-shadow:0 0 0 0 rgba(74,222,128,.5);animation:ripple 2s infinite}
+@keyframes ripple{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}70%{box-shadow:0 0 0 8px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+.hero-h1{font-size:clamp(40px,5.5vw,72px);font-weight:900;line-height:1.06;letter-spacing:-2px;margin-bottom:24px}
+.hero-h1 .line-plain{color:#fff}
+.hero-h1 .line-grad{background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 50%,#34d399 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-h1 .line-dim{color:rgba(255,255,255,.5)}
+.typewriter{border-right:3px solid #60a5fa;animation:blink .7s step-end infinite}
+@keyframes blink{0%,100%{border-color:#60a5fa}50%{border-color:transparent}}
+.hero-sub{color:rgba(255,255,255,.55);font-size:18px;line-height:1.7;margin-bottom:40px;max-width:480px}
+.hero-btns{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:56px}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:800;font-size:16px;padding:16px 36px;border-radius:14px;text-decoration:none;transition:.25s;box-shadow:0 8px 32px rgba(37,99,235,.4),inset 0 1px 0 rgba(255,255,255,.15)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 20px 50px rgba(37,99,235,.55),inset 0 1px 0 rgba(255,255,255,.15);color:#fff}
+.btn-primary svg{transition:transform .25s}
+.btn-primary:hover svg{transform:translateX(4px)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-weight:600;font-size:16px;padding:16px 32px;border-radius:14px;text-decoration:none;transition:.25s;backdrop-filter:blur(8px)}
+.btn-outline:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3);color:#fff}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap}
+.stat-item{}
+.stat-num{font-size:42px;font-weight:900;color:#fff;line-height:1;letter-spacing:-1px}
+.stat-label{color:rgba(255,255,255,.4);font-size:13px;margin-top:4px}
+.stat-sep{width:1px;background:rgba(255,255,255,.1);align-self:stretch}
+
+/* Hero right — 3D tilt card */
+.hero-card-wrap{perspective:1000px}
+.hero-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:28px;backdrop-filter:blur(24px);transition:transform .1s ease-out;will-change:transform}
+.hc-top{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.hc-dot{width:10px;height:10px;border-radius:50%}
+.hc-title{color:rgba(255,255,255,.3);font-size:12px;font-family:monospace;margin-left:8px}
+.hc-company{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px 16px;margin-bottom:20px}
+.hc-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.hc-name{font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
+.hc-sub{font-size:12px;color:rgba(255,255,255,.35);margin-top:2px}
+.hc-ai-badge{margin-left:auto;display:flex;align-items:center;gap:6px;color:#4ade80;font-size:12px;font-weight:600}
+.hc-gap{background:rgba(255,255,255,.03);border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:3px solid}
+.hc-gap.critical{border-left-color:#ef4444}
+.hc-gap.high{border-left-color:#f97316}
+.hc-gap.medium{border-left-color:#eab308}
+.hc-gap-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hc-gap-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.85)}
+.hc-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px}
+.hc-badge.critical{background:rgba(239,68,68,.2);color:#fca5a5}
+.hc-badge.high{background:rgba(249,115,22,.2);color:#fdba74}
+.hc-badge.medium{background:rgba(234,179,8,.2);color:#fde047}
+.hc-gap-desc{font-size:11px;color:rgba(255,255,255,.35);line-height:1.5}
+.hc-footer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;border-top:1px solid rgba(255,255,255,.06);padding-top:18px;margin-top:8px}
+.hc-stat{background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center}
+.hc-stat-num{font-size:20px;font-weight:900}
+.hc-stat-label{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
+.hc-float{position:absolute;top:-16px;right:-16px;background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff;font-size:11px;font-weight:800;padding:6px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(16,185,129,.4);animation:floatY 3s ease-in-out infinite}
+@keyframes floatY{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+
+/* ── Cinematic section (video replacement) ── */
+#cinematic{position:relative;overflow:hidden;height:500px;background:#060d20}
+.cin-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.07) 1px,transparent 1px);background-size:80px 80px;animation:gridPan 20s linear infinite}
+@keyframes gridPan{0%{background-position:0 0}100%{background-position:80px 80px}}
+.cin-orb-a{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.22),transparent 65%);top:-200px;left:-100px;animation:oFloat 9s ease-in-out infinite alternate}
+.cin-orb-b{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.18),transparent 65%);bottom:-150px;right:-50px;animation:oFloat 12s ease-in-out infinite alternate-reverse}
+.cin-orb-c{position:absolute;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.14),transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);animation:oFloat 7s ease-in-out infinite alternate}
+@keyframes oFloat{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.2) translate(30px,-20px)}}
+.cin-top-fade{position:absolute;inset:0 0 auto;height:120px;background:linear-gradient(#050a14,transparent);z-index:2}
+.cin-bot-fade{position:absolute;inset:auto 0 0;height:120px;background:linear-gradient(transparent,#050a14);z-index:2}
+.cin-content{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;gap:80px;padding:0 40px}
+@media(max-width:900px){.cin-content{flex-direction:column;gap:32px;padding:80px 24px}}
+.cin-text{max-width:480px}
+.cin-text h2{font-size:clamp(28px,3.5vw,50px);font-weight:900;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
+.cin-text h2 em{font-style:normal;background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cin-text p{color:rgba(255,255,255,.5);font-size:17px;line-height:1.7;margin-bottom:28px}
+.cin-steps{display:flex;flex-direction:column;gap:12px}
+.cin-step{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.7);font-size:15px}
+.cin-step-n{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0}
+/* AI demo card in cinematic */
+.cin-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:24px;backdrop-filter:blur(20px);width:340px;flex-shrink:0;position:relative;overflow:hidden}
+@media(max-width:900px){.cin-card{width:100%;max-width:340px}}
+.cin-card::after{content:'';position:absolute;left:0;top:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#3b82f6,#8b5cf6,transparent);animation:scanLine 2.5s linear infinite}
+@keyframes scanLine{0%{top:-2px}100%{top:calc(100% + 2px)}}
+.cin-card-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:16px}
+.cin-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cin-label{font-size:13px;color:rgba(255,255,255,.6);font-weight:500}
+.cin-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;margin:0 12px;overflow:hidden}
+.cin-bar{height:100%;border-radius:3px;animation:barFill 2.5s ease-out infinite}
+@keyframes barFill{0%{clip-path:inset(0 100% 0 0)}70%,100%{clip-path:inset(0 0 0 0)}}
+.cin-pct{font-size:12px;font-weight:700;min-width:28px;text-align:right}
+.cin-result{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 14px;margin-top:16px;display:flex;align-items:center;gap:8px}
+.cin-result-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:ripple 2s infinite;flex-shrink:0}
+.cin-result-text{font-size:12px;color:#93c5fd;font-weight:600}
+
+/* ── Marquee ── */
+.marquee-wrap{background:rgba(255,255,255,.03);border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);padding:18px 0;overflow:hidden}
+.marquee-track{display:flex;animation:marquee 25s linear infinite;white-space:nowrap}
+.marquee-track-rev{animation-direction:reverse;animation-duration:30s}
+.marquee-item{display:inline-flex;align-items:center;gap:8px;margin-right:48px;color:rgba(255,255,255,.35);font-size:13px;font-weight:600;letter-spacing:.5px}
+.marquee-item span{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);flex-shrink:0}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── Section commons ── */
+.section{padding:120px 0}
+.container{max-width:1280px;margin:0 auto;padding:0 24px}
+.section-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#60a5fa;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:6px 16px;border-radius:100px;margin-bottom:20px}
+.section-h2{font-size:clamp(32px,4vw,54px);font-weight:900;letter-spacing:-1.5px;color:#fff;margin-bottom:16px;line-height:1.1}
+.section-sub{color:rgba(255,255,255,.4);font-size:18px;max-width:560px;line-height:1.7}
+
+/* ── Steps ── */
+.steps-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+@media(max-width:900px){.steps-row{grid-template-columns:1fr 1fr;gap:24px}}
+@media(max-width:560px){.steps-row{grid-template-columns:1fr}}
+.steps-connector{position:absolute;top:36px;left:calc(12.5% + 20px);right:calc(12.5% + 20px);height:2px;background:linear-gradient(90deg,rgba(59,130,246,.4),rgba(139,92,246,.4),rgba(6,182,212,.4));z-index:0}
+@media(max-width:900px){.steps-connector{display:none}}
+.step-card{position:relative;z-index:1;padding:0 16px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.step-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;margin-bottom:20px;position:relative;flex-shrink:0}
+.step-circle::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:linear-gradient(135deg,rgba(59,130,246,.5),rgba(139,92,246,.5));z-index:-1;opacity:0;transition:.3s}
+.step-card:hover .step-circle::before{opacity:1}
+.step-card-h3{font-size:17px;font-weight:800;color:#fff;margin-bottom:10px;letter-spacing:-.3px}
+.step-card-p{color:rgba(255,255,255,.4);font-size:14px;line-height:1.7}
+/* Animated scan bars */
+.scan-bars{display:flex;flex-direction:column;gap:7px;margin-top:16px;width:100%}
+.scan-bar{height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;position:relative}
+.scan-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:4px;animation:scanFill 2.2s ease-out infinite}
+@keyframes scanFill{0%{clip-path:inset(0 100% 0 0);opacity:.5}55%,100%{clip-path:inset(0 0 0 0);opacity:1}}
+/* Escrow flow */
+.flow{display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+.flow-node{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7)}
+.flow-arrow{color:rgba(255,255,255,.3);font-size:16px}
+.flow-node.active{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#93c5fd}
+/* Experts mini-card */
+.exp-mini{display:flex;flex-direction:column;gap:8px;margin-top:16px;width:100%}
+.exp-row{display:flex;align-items:center;gap:8px}
+.exp-av{width:28px;height:28px;border-radius:8px;flex-shrink:0}
+.exp-bar{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.exp-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#8b5cf6,#3b82f6);animation:scanFill 1.8s ease-out infinite}
+.exp-stars{font-size:10px;color:#fbbf24;letter-spacing:1px}
+
+/* ── For Who — split ── */
+#forwho{background:linear-gradient(180deg,#050a14 0%,#080e1d 100%)}
+.forwho-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.forwho-grid{grid-template-columns:1fr}}
+.fw-card{border-radius:28px;padding:48px;position:relative;overflow:hidden;min-height:520px;display:flex;flex-direction:column}
+.fw-card-ent{background:linear-gradient(140deg,#0f2460 0%,#1e3a8a 50%,#0891b2 100%)}
+.fw-card-exp{background:linear-gradient(140deg,#2d1050 0%,#4c1d95 50%,#1e3a8a 100%)}
+.fw-card-pattern{position:absolute;inset:0;opacity:.06;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.3) 0,rgba(255,255,255,.3) 1px,transparent 0,transparent 50%);background-size:20px 20px}
+.fw-card-glow{position:absolute;width:300px;height:300px;border-radius:50%;filter:blur(80px);opacity:.25;top:-50px;right:-50px;pointer-events:none}
+.fw-icon{width:64px;height:64px;background:rgba(255,255,255,.15);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:28px;position:relative;z-index:1;backdrop-filter:blur(10px)}
+.fw-h3{font-size:32px;font-weight:900;color:#fff;margin-bottom:12px;letter-spacing:-.8px;position:relative;z-index:1}
+.fw-p{color:rgba(255,255,255,.65);font-size:16px;line-height:1.7;margin-bottom:28px;position:relative;z-index:1}
+.fw-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:36px;flex:1;position:relative;z-index:1}
+.fw-list li{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.85);font-size:15px}
+.fw-check{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:900}
+.fw-btn-ent{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#1d4ed8;font-weight:800;padding:14px 28px;border-radius:12px;text-decoration:none;font-size:15px;transition:.2s;position:relative;z-index:1;align-self:flex-start}
+.fw-btn-ent:hover{background:#eff6ff;transform:translateY(-2px)}
+.fw-btn-exp{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#6d28d9;font-weight:800;padding:14px 28px;border-radius:12px;text-decoration:none;font-size:15px;transition:.2s;position:relative;z-index:1;align-self:flex-start}
+.fw-btn-exp:hover{background:#f5f3ff;transform:translateY(-2px)}
+
+/* ── Dark stats ── */
+#stats-section{}
+@media(max-width:768px){#stats-section .container>div{grid-template-columns:repeat(2,1fr)!important}}
+
+/* ── Industries ── */
+#industries{background:#050a14}
+.ind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.ind-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.ind-grid{grid-template-columns:repeat(2,1fr)}}
+.ind-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:28px 20px;text-align:center;cursor:default;transition:.35s;position:relative;overflow:hidden}
+.ind-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15));opacity:0;transition:.35s}
+.ind-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-6px);box-shadow:0 20px 50px rgba(59,130,246,.1)}
+.ind-card:hover::after{opacity:1}
+.ind-icon{font-size:40px;margin-bottom:12px;display:block;position:relative;z-index:1;transition:.35s}
+.ind-card:hover .ind-icon{transform:scale(1.2)}
+.ind-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.55);position:relative;z-index:1;transition:.35s}
+.ind-card:hover .ind-name{color:rgba(255,255,255,.9)}
+
+/* ── Pricing ── */
+#pricing{background:linear-gradient(180deg,#050a14,#080e1d)}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:center}
+@media(max-width:768px){.pricing-grid{grid-template-columns:1fr}}
+.price-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:36px;transition:.3s}
+.price-card:hover{background:rgba(255,255,255,.07);transform:translateY(-4px)}
+.price-card.popular{background:linear-gradient(140deg,#1d3a8a,#4c1d95);border-color:rgba(139,92,246,.4);transform:scale(1.06);box-shadow:0 40px 100px rgba(124,58,237,.25),0 0 0 1px rgba(139,92,246,.3)}
+@media(max-width:768px){.price-card.popular{transform:scale(1)}}
+.plan-label{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px}
+.popular .plan-label{color:rgba(167,139,250,.8)}
+.plan-badge{display:inline-block;background:linear-gradient(135deg,#f97316,#ec4899);color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:100px;margin-bottom:16px}
+.plan-price{font-size:52px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.plan-period{font-size:15px;font-weight:400;color:rgba(255,255,255,.4)}
+.plan-desc{color:rgba(255,255,255,.4);font-size:14px;margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,.06)}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.plan-features li{display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(255,255,255,.7)}
+.plan-features li.no{color:rgba(255,255,255,.25);text-decoration:line-through}
+.feat-check{color:#4ade80;font-weight:900;font-size:13px}
+.feat-no{color:rgba(255,255,255,.2)}
+.plan-btn{display:block;text-align:center;padding:14px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;transition:.2s}
+.plan-btn-outline{border:1px solid rgba(255,255,255,.15);color:#fff}
+.plan-btn-outline:hover{background:rgba(255,255,255,.08);color:#fff}
+.plan-btn-solid{background:#fff;color:#4c1d95;font-weight:900}
+.plan-btn-solid:hover{background:#ede9fe}
+
+/* ── FAQ ── */
+#faq-section{background:#050a14}
+.faq-item{border-bottom:1px solid rgba(255,255,255,.06)}
+.faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:24px 0;background:none;border:none;color:#fff;font-size:17px;font-weight:700;cursor:pointer;text-align:left;gap:16px;transition:.2s}
+.faq-btn:hover{color:#60a5fa}
+.faq-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.3s}
+.faq-btn.open .faq-icon{background:rgba(59,130,246,.2);transform:rotate(180deg)}
+.faq-answer{display:none;padding-bottom:24px;color:rgba(255,255,255,.5);line-height:1.8;font-size:15px}
+.faq-answer.open{display:block}
+
+/* ── CTA ── */
+#cta-section{position:relative;padding:160px 0;overflow:hidden;background:linear-gradient(135deg,#0a0f1e,#1a0a2e,#0a1428)}
+.cta-orb-1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.2),transparent 70%);top:-200px;left:-100px;animation:glow1 8s ease-in-out infinite alternate;pointer-events:none}
+.cta-orb-2{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.18),transparent 70%);bottom:-150px;right:-50px;animation:glow1 10s ease-in-out infinite alternate-reverse;pointer-events:none}
+#cta-section .container{position:relative;z-index:2;text-align:center}
+.cta-h2{font-size:clamp(36px,5vw,68px);font-weight:900;letter-spacing:-2px;color:#fff;margin-bottom:20px;line-height:1.05}
+.cta-sub{color:rgba(255,255,255,.5);font-size:20px;max-width:560px;margin:0 auto 48px;line-height:1.6}
+.cta-btns{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+
+/* ── Footer ── */
+#footer{background:#030711;border-top:1px solid rgba(255,255,255,.05);padding:80px 0 40px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:60px}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr}}
+.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.footer-logo img{width:36px;height:36px;border-radius:10px}
+.footer-logo span{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.footer-desc{color:rgba(255,255,255,.3);font-size:14px;line-height:1.7;max-width:300px;margin-bottom:24px}
+.footer-socials{display:flex;gap:10px}
+.social-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;transition:.2s;text-decoration:none}
+.social-btn:hover{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4)}
+.footer-col-title{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:20px}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:12px}
+.footer-links a{color:rgba(255,255,255,.4);text-decoration:none;font-size:14px;transition:.2s}
+.footer-links a:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-copy{color:rgba(255,255,255,.2);font-size:13px}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{color:rgba(255,255,255,.2);text-decoration:none;font-size:13px;transition:.2s}
+.footer-legal a:hover{color:rgba(255,255,255,.6)}
+
+/* ── Scroll reveal ── */
+.sr{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.sr.visible{opacity:1;transform:none}
+.sr-l{opacity:0;transform:translateX(-50px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.sr-r{opacity:0;transform:translateX(50px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.sr-l.visible,.sr-r.visible{opacity:1;transform:none}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="lr">
+
+<!-- Progress bar -->
+<div id="prog"></div>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<nav id="lnav">
+  <a href="/" class="nav-logo">
+    <img src="/static/icons/icon-96.png" alt="SB">
+    <span>StandardBridge</span>
+  </a>
+  <div class="nav-right">
+    <form method="post" action="{% url 'set_language' %}" style="display:flex;gap:4px;align-items:center">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+      {% for code, label in langs %}
+      <button type="submit" name="lang" value="{{ code }}" class="lang-btn {% if current_lang == code %}active{% endif %}">{{ code|upper }}</button>
+      {% endfor %}
+    </form>
+    <a href="{% url 'login' %}" class="nav-login" style="display:none" id="nav-login-btn">{{ T.hero_login }}</a>
+    <a href="{% url 'register' %}" class="nav-cta">{{ T.register }}</a>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-glow-1"></div>
+  <div class="hero-glow-2"></div>
+  <div class="hero-glow-3"></div>
+
+  <div class="hero-inner">
+    <!-- Left -->
+    <div>
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        {{ T.hero_badge }}
+      </div>
+      <h1 class="hero-h1">
+        <span class="line-plain">{{ T.hero_h1_line1 }}</span><br>
+        <span class="line-grad" id="typewriter-target">{{ T.hero_h1_line2 }}</span><br>
+        <span class="line-dim">{{ T.hero_h1_line3 }}</span>
+      </h1>
+      <p class="hero-sub">{{ T.hero_subtitle }}</p>
+      <div class="hero-btns">
+        <a href="{% url 'register' %}" class="btn-primary">
+          {{ T.hero_cta }}
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+        <a href="{% url 'login' %}" class="btn-outline">{{ T.hero_login }}</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num counter" data-target="{{ user_count|default:350 }}">0</div>
+          <div class="stat-label">{{ T.stat_standards }}</div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <div class="stat-num counter" data-target="{{ expert_count|default:48 }}">0</div>
+          <div class="stat-label">{{ T.stat_faster }}</div>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <div class="stat-num counter" data-target="{{ analysis_count|default:400 }}">0</div>
+          <div class="stat-label">{{ T.stat_savings }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: 3D tilt card -->
+    <div class="hero-right">
+      <div class="hero-card-wrap" id="tilt-wrap">
+        <div class="hero-card" id="tilt-card" style="position:relative">
+          <div class="hc-float">✨ AI Powered</div>
+          <div class="hc-top">
+            <div class="hc-dot" style="background:#ef4444"></div>
+            <div class="hc-dot" style="background:#f59e0b"></div>
+            <div class="hc-dot" style="background:#10b981"></div>
+            <span class="hc-title">standartbridge.ai · gap-analysis</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:10px 14px">
+            <div style="width:7px;height:7px;background:#4ade80;border-radius:50%;flex-shrink:0;animation:ripple 2s infinite"></div>
+            <span style="font-size:12px;font-weight:700;color:#4ade80;letter-spacing:.5px">ISO 9001:2015 · {{ T.landing_ai_label }}</span>
+            <span style="margin-left:auto;font-size:12px;font-weight:600;color:rgba(255,255,255,.4)">89% {{ T.landing_ready_word }}</span>
+          </div>
+          <div class="hc-gap critical">
+            <div class="hc-gap-row">
+              <span class="hc-gap-title">{{ T.ai_gap1_title }}</span>
+              <span class="hc-badge critical">{{ T.priority_critical }}</span>
+            </div>
+            <div class="hc-gap-desc">{{ T.ai_gap1_desc }}</div>
+          </div>
+          <div class="hc-gap high">
+            <div class="hc-gap-row">
+              <span class="hc-gap-title">{{ T.ai_gap2_title }}</span>
+              <span class="hc-badge high">{{ T.priority_high }}</span>
+            </div>
+            <div class="hc-gap-desc">{{ T.ai_gap2_desc }}</div>
+          </div>
+          <div class="hc-gap medium">
+            <div class="hc-gap-row">
+              <span class="hc-gap-title">{{ T.ai_gap3_title }}</span>
+              <span class="hc-badge medium">{{ T.priority_medium }}</span>
+            </div>
+            <div class="hc-gap-desc">{{ T.ai_gap3_desc }}</div>
+          </div>
+          <div class="hc-footer">
+            <div class="hc-stat"><div class="hc-stat-num" style="color:#60a5fa">89%</div><div class="hc-stat-label">{{ T.readiness_label }}</div></div>
+            <div class="hc-stat"><div class="hc-stat-num" style="color:#a78bfa">8 oy</div><div class="hc-stat-label">{{ T.ai_est_time }}</div></div>
+            <div class="hc-stat"><div class="hc-stat-num" style="color:#34d399">$1.5K</div><div class="hc-stat-label">{{ T.ai_est_cost }}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ CINEMATIC ═══════════════ -->
+<section id="cinematic">
+  <div class="cin-grid"></div>
+  <div class="cin-orb-a"></div>
+  <div class="cin-orb-b"></div>
+  <div class="cin-orb-c"></div>
+  <div class="cin-top-fade"></div>
+  <div class="cin-bot-fade"></div>
+  <div class="cin-content">
+    <div class="cin-text sr-l">
+      <h2>{{ T.cin_h2 }}</h2>
+      <p>{{ T.cin_p }}</p>
+      <div class="cin-steps">
+        <div class="cin-step"><div class="cin-step-n">1</div>{{ T.cin_step1 }}</div>
+        <div class="cin-step"><div class="cin-step-n">2</div>{{ T.cin_step2 }}</div>
+        <div class="cin-step"><div class="cin-step-n">3</div>{{ T.cin_step3 }}</div>
+      </div>
+    </div>
+    <!-- Live AI demo card -->
+    <div class="cin-card sr-r">
+      <div class="cin-card-title">{{ T.cin_card_title }}</div>
+      <div class="cin-row">
+        <span class="cin-label">{{ T.cin_bar1 }}</span>
+        <div class="cin-bar-wrap"><div class="cin-bar" style="width:85%;background:linear-gradient(90deg,#ef4444,#f97316);animation-delay:0s"></div></div>
+        <span class="cin-pct" style="color:#fca5a5">85%</span>
+      </div>
+      <div class="cin-row">
+        <span class="cin-label">{{ T.cin_bar2 }}</span>
+        <div class="cin-bar-wrap"><div class="cin-bar" style="width:62%;background:linear-gradient(90deg,#f97316,#eab308);animation-delay:.4s"></div></div>
+        <span class="cin-pct" style="color:#fdba74">62%</span>
+      </div>
+      <div class="cin-row">
+        <span class="cin-label">{{ T.cin_bar3 }}</span>
+        <div class="cin-bar-wrap"><div class="cin-bar" style="width:91%;background:linear-gradient(90deg,#10b981,#06b6d4);animation-delay:.8s"></div></div>
+        <span class="cin-pct" style="color:#6ee7b7">91%</span>
+      </div>
+      <div class="cin-row">
+        <span class="cin-label">{{ T.cin_bar4 }}</span>
+        <div class="cin-bar-wrap"><div class="cin-bar" style="width:47%;background:linear-gradient(90deg,#eab308,#84cc16);animation-delay:1.2s"></div></div>
+        <span class="cin-pct" style="color:#fde047">47%</span>
+      </div>
+      <div class="cin-result">
+        <div class="cin-result-dot"></div>
+        <div class="cin-result-text">{{ T.cin_result }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ MARQUEE ═══════════════ -->
+<div class="marquee-wrap" style="padding-top:12px">
+  <div class="marquee-track">
+    {% for std in standards_list %}<div class="marquee-item"><span></span>{{ std }}</div>{% endfor %}
+    {% for std in standards_list %}<div class="marquee-item"><span></span>{{ std }}</div>{% endfor %}
+    {% for std in standards_list %}<div class="marquee-item"><span></span>{{ std }}</div>{% endfor %}
+  </div>
+</div>
+<div class="marquee-wrap" style="padding-bottom:12px">
+  <div class="marquee-track marquee-track-rev">
+    {% for name, icon in industry_list %}<div class="marquee-item"><span style="background:linear-gradient(135deg,#34d399,#06b6d4)"></span>{{ icon }} {{ name }}</div>{% endfor %}
+    {% for name, icon in industry_list %}<div class="marquee-item"><span style="background:linear-gradient(135deg,#34d399,#06b6d4)"></span>{{ icon }} {{ name }}</div>{% endfor %}
+    {% for name, icon in industry_list %}<div class="marquee-item"><span style="background:linear-gradient(135deg,#34d399,#06b6d4)"></span>{{ icon }} {{ name }}</div>{% endfor %}
+  </div>
+</div>
+
+<!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+<section class="section" id="features" style="background:linear-gradient(180deg,#050a14 0%,#0a1628 50%,#050a14 100%)">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:72px" class="sr">
+      <div class="section-label">{{ T.how_badge }}</div>
+      <h2 class="section-h2">{{ T.how_title }}</h2>
+      <p class="section-sub" style="margin:0 auto">{{ T.how_subtitle }}</p>
+    </div>
+    <div style="position:relative">
+      <div class="steps-connector"></div>
+      <div class="steps-row">
+
+        <!-- Step 1 -->
+        <div class="step-card sr" style="transition-delay:.05s">
+          <div class="step-circle" style="background:linear-gradient(135deg,rgba(37,99,235,.25),rgba(124,58,237,.25));border:1.5px solid rgba(59,130,246,.3)">
+            <span style="font-size:20px">🤖</span>
+          </div>
+          <h3 class="step-card-h3">{{ T.step1_title }}</h3>
+          <p class="step-card-p">{{ T.step1_desc }}</p>
+          <div class="scan-bars">
+            <div class="scan-bar"><div class="scan-bar-fill" style="width:85%;background:linear-gradient(90deg,#ef4444,#f97316);animation-delay:0s"></div></div>
+            <div class="scan-bar"><div class="scan-bar-fill" style="width:62%;background:linear-gradient(90deg,#f97316,#eab308);animation-delay:.3s"></div></div>
+            <div class="scan-bar"><div class="scan-bar-fill" style="width:91%;background:linear-gradient(90deg,#10b981,#06b6d4);animation-delay:.6s"></div></div>
+            <div class="scan-bar"><div class="scan-bar-fill" style="width:47%;background:linear-gradient(90deg,#eab308,#84cc16);animation-delay:.9s"></div></div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card sr" style="transition-delay:.15s">
+          <div class="step-circle" style="background:linear-gradient(135deg,rgba(6,182,212,.25),rgba(16,185,129,.25));border:1.5px solid rgba(6,182,212,.3)">
+            <span style="font-size:20px">📊</span>
+          </div>
+          <h3 class="step-card-h3">{{ T.step2_title }}</h3>
+          <p class="step-card-p">{{ T.step2_desc }}</p>
+          <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <span style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:#fca5a5;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800">{{ T.priority_critical }}</span>
+            <span style="background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.2);color:#fdba74;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800">{{ T.priority_high }}</span>
+            <span style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.2);color:#fde047;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800">{{ T.priority_medium }}</span>
+            <span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.2);color:#86efac;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:800">{{ T.priority_low }}</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card sr" style="transition-delay:.25s">
+          <div class="step-circle" style="background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(236,72,153,.25));border:1.5px solid rgba(139,92,246,.3)">
+            <span style="font-size:20px">🏆</span>
+          </div>
+          <h3 class="step-card-h3">{{ T.step3_title }}</h3>
+          <p class="step-card-p">{{ T.step3_desc }}</p>
+          <div class="exp-mini">
+            <div class="exp-row">
+              <div class="exp-av" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)"></div>
+              <div class="exp-bar"><div class="exp-bar-fill" style="width:92%;animation-delay:0s"></div></div>
+              <span class="exp-stars">★★★★★</span>
+            </div>
+            <div class="exp-row">
+              <div class="exp-av" style="background:linear-gradient(135deg,#10b981,#06b6d4)"></div>
+              <div class="exp-bar"><div class="exp-bar-fill" style="width:78%;animation-delay:.4s"></div></div>
+              <span class="exp-stars">★★★★☆</span>
+            </div>
+            <div class="exp-row">
+              <div class="exp-av" style="background:linear-gradient(135deg,#f97316,#ec4899)"></div>
+              <div class="exp-bar"><div class="exp-bar-fill" style="width:85%;animation-delay:.8s"></div></div>
+              <span class="exp-stars">★★★★★</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card sr" style="transition-delay:.35s">
+          <div class="step-circle" style="background:linear-gradient(135deg,rgba(16,185,129,.25),rgba(6,182,212,.25));border:1.5px solid rgba(16,185,129,.3)">
+            <span style="font-size:20px">🔒</span>
+          </div>
+          <h3 class="step-card-h3">{{ T.step4_title }}</h3>
+          <p class="step-card-p">{{ T.step4_desc }}</p>
+          <div class="flow">
+            <div class="flow-node">{{ T.flow_entrepreneur }}</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node active">Escrow</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">{{ T.flow_expert }}</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STATS ═══════════════ -->
+<section id="stats-section" style="background:linear-gradient(135deg,#080e1d,#0d1530,#080e1d);position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);background-size:48px 48px"></div>
+  <div style="position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.08),transparent 70%);top:-200px;left:-100px;pointer-events:none"></div>
+  <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.07),transparent 70%);bottom:-150px;right:-50px;pointer-events:none"></div>
+  <div class="container" style="position:relative;z-index:1;padding-top:80px;padding-bottom:80px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px">
+      <div class="sr" style="text-align:center;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:24px;padding:36px 20px;transition:.3s" onmouseenter="this.style.transform='translateY(-6px)'" onmouseleave="this.style.transform=''">
+        <div style="font-size:36px;margin-bottom:12px">🏢</div>
+        <div style="font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;background:linear-gradient(135deg,#60a5fa,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" class="counter" data-target="{{ user_count|default:350 }}" data-suffix="+">0</div>
+        <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:8px">{{ T.stat_standards }}</div>
+      </div>
+      <div class="sr" style="transition-delay:.1s;text-align:center;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.15);border-radius:24px;padding:36px 20px;transition:.3s" onmouseenter="this.style.transform='translateY(-6px)'" onmouseleave="this.style.transform=''">
+        <div style="font-size:36px;margin-bottom:12px">👨‍💼</div>
+        <div style="font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;background:linear-gradient(135deg,#34d399,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" class="counter" data-target="{{ expert_count|default:48 }}" data-suffix="+">0</div>
+        <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:8px">{{ T.stat_faster }}</div>
+      </div>
+      <div class="sr" style="transition-delay:.2s;text-align:center;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:24px;padding:36px 20px;transition:.3s" onmouseenter="this.style.transform='translateY(-6px)'" onmouseleave="this.style.transform=''">
+        <div style="font-size:36px;margin-bottom:12px">📊</div>
+        <div style="font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" class="counter" data-target="{{ analysis_count|default:400 }}" data-suffix="+">0</div>
+        <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:8px">{{ T.stat_savings }}</div>
+      </div>
+      <div class="sr" style="transition-delay:.3s;text-align:center;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:24px;padding:36px 20px;transition:.3s" onmouseenter="this.style.transform='translateY(-6px)'" onmouseleave="this.style.transform=''">
+        <div style="font-size:36px;margin-bottom:12px">💰</div>
+        <div style="font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1;background:linear-gradient(135deg,#34d399,#84cc16);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">40%</div>
+        <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:8px">{{ T.stat_cost_savings }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOR WHO ═══════════════ -->
+<section class="section" id="forwho">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:64px" class="sr">
+      <div class="section-label">{{ T.forwhom_badge }}</div>
+      <h2 class="section-h2">{{ T.forwhom_title }}</h2>
+    </div>
+    <div class="forwho-grid">
+      <!-- Tadbirkor -->
+      <div class="fw-card fw-card-ent sr-l">
+        <div class="fw-card-pattern"></div>
+        <div class="fw-card-glow" style="background:rgba(6,182,212,.4)"></div>
+        <div class="fw-icon">
+          <svg width="32" height="32" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <h3 class="fw-h3">{{ T.entrepreneur_title }}</h3>
+        <p class="fw-p">{{ T.entrepreneur_desc }}</p>
+        <ul class="fw-list">
+          <li><div class="fw-check">✓</div>{{ T.entrepreneur_feat1 }}</li>
+          <li><div class="fw-check">✓</div>{{ T.entrepreneur_feat2 }}</li>
+          <li><div class="fw-check">✓</div>{{ T.entrepreneur_feat3 }}</li>
+          <li><div class="fw-check">✓</div>{{ T.entrepreneur_feat4 }}</li>
+        </ul>
+        <a href="{% url 'register' %}" class="fw-btn-ent">
+          {{ T.entrepreneur_cta }}
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+      </div>
+      <!-- Mutaxassis -->
+      <div class="fw-card fw-card-exp sr-r">
+        <div class="fw-card-pattern"></div>
+        <div class="fw-card-glow" style="background:rgba(167,139,250,.4)"></div>
+        <div class="fw-icon">
+          <svg width="32" height="32" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        </div>
+        <h3 class="fw-h3">{{ T.expert_title }}</h3>
+        <p class="fw-p">{{ T.expert_desc }}</p>
+        <ul class="fw-list">
+          <li><div class="fw-check" style="background:rgba(255,255,255,.15)">✓</div>{{ T.expert_feat1 }}</li>
+          <li><div class="fw-check" style="background:rgba(255,255,255,.15)">✓</div>{{ T.expert_feat2 }}</li>
+          <li><div class="fw-check" style="background:rgba(255,255,255,.15)">✓</div>{{ T.expert_feat3 }}</li>
+          <li><div class="fw-check" style="background:rgba(255,255,255,.15)">✓</div>{{ T.expert_feat4 }}</li>
+        </ul>
+        <a href="{% url 'register' %}" class="fw-btn-exp">
+          {{ T.expert_cta }}
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ INDUSTRIES ═══════════════ -->
+<section class="section" id="industries" style="padding-top:80px;padding-bottom:80px">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:48px" class="sr">
+      <div class="section-label">{{ T.industries_badge }}</div>
+      <h2 class="section-h2">{{ T.industries_title }}</h2>
+    </div>
+    <div class="ind-grid">
+      {% for name, icon in industry_list %}
+      <div class="ind-card sr" style="transition-delay:{{ forloop.counter0 }}0ms">
+        <span class="ind-icon">{{ icon }}</span>
+        <p class="ind-name">{{ name }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PRICING ═══════════════ -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:64px" class="sr">
+      <div class="section-label">{{ T.pricing_badge }}</div>
+      <h2 class="section-h2">{{ T.pricing_title }}</h2>
+      <p class="section-sub" style="margin:0 auto">{{ T.pricing_subtitle }}</p>
+    </div>
+    <div class="pricing-grid">
+      <!-- Starter -->
+      <div class="price-card sr-l">
+        <p class="plan-label">{{ T.plan_starter }}</p>
+        <p class="plan-price">{{ T.plan_starter_price }}</p>
+        <p class="plan-desc">{{ T.plan_starter_for }}</p>
+        <ul class="plan-features">
+          <li><span class="feat-check">✓</span>{{ T.plan_starter_f1 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_starter_f2 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_starter_f3 }}</li>
+          <li class="no"><span class="feat-no">✗</span>{{ T.plan_starter_f4_no }}</li>
+        </ul>
+        <a href="{% url 'register' %}" class="plan-btn plan-btn-outline">{{ T.btn_start }}</a>
+      </div>
+      <!-- Pro (popular) -->
+      <div class="price-card popular sr">
+        <p class="plan-label">{{ T.plan_pro }}</p>
+        <div class="plan-badge">🔥 {{ T.plan_pro_badge }}</div>
+        <p class="plan-price">{{ T.plan_pro_price }}<span class="plan-period"> {{ T.plan_pro_per }}</span></p>
+        <p class="plan-desc" style="border-color:rgba(255,255,255,.1)">{{ T.plan_pro_for }}</p>
+        <ul class="plan-features">
+          <li><span class="feat-check">✓</span>{{ T.plan_pro_f1 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_pro_f2 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_pro_f3 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_pro_f4 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_pro_f5 }}</li>
+        </ul>
+        <a href="{% url 'register' %}" class="plan-btn plan-btn-solid">{{ T.btn_start }}</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="price-card sr-r">
+        <p class="plan-label">{{ T.plan_enterprise }}</p>
+        <p class="plan-price">{{ T.plan_enterprise_price }}</p>
+        <p class="plan-desc">{{ T.plan_enterprise_for }}</p>
+        <ul class="plan-features">
+          <li><span class="feat-check">✓</span>{{ T.plan_enterprise_f1 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_enterprise_f2 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_enterprise_f3 }}</li>
+          <li><span class="feat-check">✓</span>{{ T.plan_enterprise_f4 }}</li>
+        </ul>
+        <a href="mailto:isoqjonovavazbek@gmail.com" class="plan-btn plan-btn-outline">{{ T.btn_contact }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FAQ ═══════════════ -->
+<section class="section" id="faq-section" style="padding-top:80px">
+  <div class="container" style="max-width:760px">
+    <div style="text-align:center;margin-bottom:56px" class="sr">
+      <div class="section-label">{{ T.faq_badge }}</div>
+      <h2 class="section-h2">{{ T.faq_title }}</h2>
+    </div>
+    <div>
+      {% for q, a in faq_list %}
+      <div class="faq-item sr" style="transition-delay:{{ forloop.counter0 }}0ms">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          <span>{{ q }}</span>
+          <div class="faq-icon">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </button>
+        <div class="faq-answer">{{ a }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ CTA ═══════════════ -->
+<section id="cta-section" style="padding:100px 0;background:linear-gradient(135deg,#050a14,#0d1530,#050a14);position:relative;overflow:hidden">
+  <!-- Animated grid -->
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.05) 1px,transparent 1px);background-size:60px 60px"></div>
+  <!-- Glow orbs (subtle, not animating in/out) -->
+  <div style="position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.12),transparent 65%);top:-250px;left:-150px;pointer-events:none"></div>
+  <div style="position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.1),transparent 65%);bottom:-200px;right:-100px;pointer-events:none"></div>
+
+  <div class="container" style="position:relative;z-index:1">
+    <div style="max-width:840px;margin:0 auto">
+      <!-- Social proof row -->
+      <div class="sr" style="display:flex;align-items:center;gap:12px;margin-bottom:32px">
+        <div style="display:flex">
+          {% for c in "ABCDE" %}
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,{% if forloop.first %}#3b82f6,#8b5cf6{% elif forloop.counter == 2 %}#10b981,#06b6d4{% elif forloop.counter == 3 %}#f97316,#ec4899{% elif forloop.counter == 4 %}#eab308,#84cc16{% else %}#8b5cf6,#3b82f6{% endif %});border:2px solid #050a14;margin-right:-8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff">{{ c }}</div>
+          {% endfor %}
+        </div>
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:100px;padding:6px 16px;display:inline-flex;align-items:center;gap:8px">
+          <div style="width:7px;height:7px;border-radius:50%;background:#4ade80;animation:ripple 2s infinite"></div>
+          <span style="color:rgba(255,255,255,.6);font-size:13px;font-weight:600">{{ user_count|default:350 }}+ {{ T.cta_social_proof }}</span>
+        </div>
+      </div>
+
+      <h2 class="cta-h2 sr">{{ T.cta_title }}</h2>
+      <p class="cta-sub sr" style="text-align:left;margin:0 0 40px">{{ T.cta_subtitle }}</p>
+
+      <div class="cta-btns sr" style="justify-content:flex-start">
+        <a href="{% url 'register' %}" class="btn-primary" style="font-size:17px;padding:18px 44px">
+          {{ T.cta_btn }}
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+        <a href="{% url 'login' %}" class="btn-outline" style="font-size:17px;padding:18px 36px">
+          {{ T.hero_login }}
+        </a>
+      </div>
+
+      <!-- Trust badges -->
+      <div class="sr" style="display:flex;flex-wrap:wrap;gap:16px;margin-top:40px">
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.35);font-size:13px">
+          <svg width="16" height="16" fill="none" stroke="#4ade80" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          {{ T.trust_free }}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.35);font-size:13px">
+          <svg width="16" height="16" fill="none" stroke="#4ade80" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          {{ T.trust_no_card }}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.35);font-size:13px">
+          <svg width="16" height="16" fill="none" stroke="#4ade80" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          {{ T.trust_ai_free }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <img src="/static/icons/icon-96.png" alt="SB">
+          <span>StandardBridge</span>
+        </div>
+        <p class="footer-desc">{{ T.footer_desc }}</p>
+        <div class="footer-socials">
+          <a href="https://t.me/standartbridge" target="_blank" rel="noopener" class="social-btn">
+            <svg width="16" height="16" fill="rgba(255,255,255,.5)" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 1 0 24 12 12 12 0 0 0 11.944 0zm5.37 8.317l-1.73 8.16c-.13.59-.48.73-.97.46l-2.68-1.97-1.29 1.24c-.14.14-.27.27-.55.27l.19-2.72 4.97-4.49c.22-.19-.05-.3-.33-.11L7.9 14.07l-2.63-.82c-.57-.18-.58-.57.12-.84l10.27-3.96c.48-.17.9.12.74.84z"/></svg>
+          </a>
+          <a href="mailto:isoqjonovavazbek@gmail.com" class="social-btn">
+            <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,.5)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">{{ T.footer_platform }}</p>
+        <ul class="footer-links">
+          <li><a href="{% url 'register' %}">{{ T.register }}</a></li>
+          <li><a href="{% url 'login' %}">{{ T.login }}</a></li>
+          <li><a href="{% url 'blog_list' %}">{{ T.blog }}</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">{{ T.footer_contact }}</p>
+        <ul class="footer-links">
+          <li><a href="mailto:isoqjonovavazbek@gmail.com">isoqjonovavazbek@gmail.com</a></li>
+          <li><a href="tel:+998779701017">+998 77 970 10 17</a></li>
+          <li><span style="color:rgba(255,255,255,.25)">{{ T.footer_address }}</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">{{ T.footer_copyright }}</p>
+      <div class="footer-legal">
+        <a href="#">{{ T.footer_privacy }}</a>
+        <a href="#">{{ T.footer_terms }}</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</div><!-- #lr -->
+
+<script>
+/* ── Scroll progress ── */
+window.addEventListener('scroll',function(){
+  var p=document.getElementById('prog');
+  if(!p)return;
+  var s=document.documentElement.scrollTop||document.body.scrollTop;
+  var h=document.documentElement.scrollHeight-window.innerHeight;
+  p.style.width=(h>0?s/h*100:0)+'%';
+},{passive:true});
+
+/* ── Navbar scroll ── */
+window.addEventListener('scroll',function(){
+  var n=document.getElementById('lnav');
+  if(!n)return;
+  n.classList.toggle('scrolled',window.scrollY>50);
+  // Show login link after scroll
+  var l=document.getElementById('nav-login-btn');
+  if(l)l.style.display=window.scrollY>200?'block':'none';
+},{passive:true});
+
+/* ── Canvas particle network ── */
+(function(){
+  var c=document.getElementById('hero-canvas');
+  if(!c)return;
+  var ctx=c.getContext('2d');
+  var W,H,pts=[];
+  var mouse={x:-9999,y:-9999};
+
+  function resize(){
+    W=c.width=c.offsetWidth;
+    H=c.height=c.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  c.parentElement.addEventListener('mousemove',function(e){
+    var r=c.getBoundingClientRect();
+    mouse.x=e.clientX-r.left;
+    mouse.y=e.clientY-r.top;
+  });
+
+  for(var i=0;i<90;i++){
+    pts.push({
+      x:Math.random()*1400,y:Math.random()*700,
+      vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,
+      r:Math.random()*2+.5
+    });
+  }
+
+  function draw(){
+    requestAnimationFrame(draw);
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(function(p){
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+    });
+    // Mouse repulsion
+    pts.forEach(function(p){
+      var dx=p.x-mouse.x,dy=p.y-mouse.y;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){var f=(120-d)/120*.5;p.vx+=dx/d*f;p.vy+=dy/d*f;}
+      var spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+      if(spd>.8){p.vx=p.vx/spd*.8;p.vy=p.vy/spd*.8;}
+    });
+    // Draw connections
+    for(var i=0;i<pts.length;i++){
+      for(var j=i+1;j<pts.length;j++){
+        var dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
+        var d=Math.sqrt(dx*dx+dy*dy);
+        if(d<140){
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x,pts[i].y);
+          ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.strokeStyle='rgba(99,155,255,'+(1-d/140)*.18+')';
+          ctx.lineWidth=.8;
+          ctx.stroke();
+        }
+      }
+    }
+    // Draw dots
+    pts.forEach(function(p){
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(147,197,253,.55)';
+      ctx.fill();
+    });
+  }
+  draw();
+})();
+
+/* ── 3D tilt on hero card ── */
+(function(){
+  var wrap=document.getElementById('tilt-wrap');
+  var card=document.getElementById('tilt-card');
+  if(!wrap||!card)return;
+  wrap.addEventListener('mousemove',function(e){
+    var r=wrap.getBoundingClientRect();
+    var x=(e.clientX-r.left)/r.width-.5;
+    var y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform='perspective(800px) rotateY('+x*16+'deg) rotateX('+(-y*10)+'deg) scale3d(1.02,1.02,1.02)';
+  });
+  wrap.addEventListener('mouseleave',function(){
+    card.style.transform='perspective(800px) rotateY(0) rotateX(0) scale3d(1,1,1)';
+  });
+})();
+
+/* ── Scroll reveal ── */
+(function(){
+  var els=document.querySelectorAll('.sr,.sr-l,.sr-r');
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}
+    });
+  },{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+  els.forEach(function(el){io.observe(el);});
+})();
+
+/* ── Animated counters ── */
+(function(){
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting)return;
+      var el=e.target;
+      var t=parseInt(el.getAttribute('data-target')||'0');
+      var s=el.getAttribute('data-suffix')||'';
+      var dur=1600,start=performance.now();
+      (function step(now){
+        var p=Math.min((now-start)/dur,1);
+        var ease=1-Math.pow(1-p,3);
+        el.textContent=Math.round(ease*t)+s;
+        if(p<1)requestAnimationFrame(step);
+      })(start);
+      io.unobserve(el);
+    });
+  },{threshold:.5});
+  document.querySelectorAll('.counter').forEach(function(el){io.observe(el);});
+})();
+
+/* ── Custom glowing cursor ── */
+(function(){
+  if(window.matchMedia('(pointer:coarse)').matches)return;
+  var ring=document.createElement('div');ring.id='sb-cursor-ring';
+  var dot=document.createElement('div');dot.id='sb-cursor-dot';
+  document.body.appendChild(ring);document.body.appendChild(dot);
+  var mx=window.innerWidth/2,my=window.innerHeight/2;
+  var rx=mx,ry=my;
+  var raf;
+  document.addEventListener('mousemove',function(e){
+    mx=e.clientX;my=e.clientY;
+    dot.style.left=mx+'px';dot.style.top=my+'px';
+  });
+  document.addEventListener('mousedown',function(){ring.classList.add('clicking');});
+  document.addEventListener('mouseup',function(){ring.classList.remove('clicking');});
+  var interactors='a,button,[role="button"]';
+  document.addEventListener('mouseover',function(e){
+    if(e.target.closest(interactors))ring.classList.add('hovering');
+  });
+  document.addEventListener('mouseout',function(e){
+    if(e.target.closest(interactors))ring.classList.remove('hovering');
+  });
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function tick(){
+    rx=lerp(rx,mx,0.1);ry=lerp(ry,my,0.1);
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    raf=requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+/* ── Multi-layer parallax on scroll ── */
+(function(){
+  var layers=[
+    {sel:'.cin-orb-a',speed:0.12},
+    {sel:'.cin-orb-b',speed:-0.08},
+    {sel:'.cin-orb-c',speed:0.06},
+    {sel:'.hero-glow-3',speed:0.07}
+  ];
+  var els=layers.map(function(l){return{el:document.querySelector(l.sel),speed:l.speed};});
+  var ticking=false;
+  function update(){
+    var y=window.scrollY;
+    els.forEach(function(item){
+      if(!item.el)return;
+      var base=item.el._baseTransform||'';
+      item.el.style.transform=base+' translateY('+Math.round(y*item.speed)+'px)';
+    });
+    ticking=false;
+  }
+  window.addEventListener('scroll',function(){
+    if(!ticking){requestAnimationFrame(update);ticking=true;}
+  },{passive:true});
+})();
+
+/* ── Split-text on section headings ── */
+(function(){
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting)return;
+      var h=e.target;
+      var text=h.textContent;
+      var html='';
+      var delay=0;
+      for(var i=0;i<text.length;i++){
+        var ch=text[i]===' '?' ':text[i];
+        html+='<span class="letter" style="animation-delay:'+(delay)+'ms">'+(text[i]===' '?'&nbsp;':text[i])+'</span>';
+        if(text[i]!==' ')delay+=18;
+      }
+      h.innerHTML=html;
+      h.classList.add('split-text-done');
+      io.unobserve(h);
+    });
+  },{threshold:0.4});
+  document.querySelectorAll('.section-h2').forEach(function(h){io.observe(h);});
+})();
+
+/* ── FAQ ── */
+function toggleFaq(btn){
+  var ans=btn.nextElementSibling;
+  var isOpen=ans.classList.contains('open');
+  document.querySelectorAll('.faq-answer').forEach(function(a){a.classList.remove('open');});
+  document.querySelectorAll('.faq-btn').forEach(function(b){b.classList.remove('open');});
+  if(!isOpen){ans.classList.add('open');btn.classList.add('open');}
+}
+
+/* ── Typewriter ── */
+(function(){
+  var el=document.getElementById('typewriter-target');
+  if(!el)return;
+  var text=el.textContent;
+  el.textContent='';
+  el.classList.add('typewriter');
+  var i=0;
+  function type(){
+    if(i<=text.length){
+      el.textContent=text.slice(0,i);
+      i++;
+      setTimeout(type,i===text.length?800:60);
+    } else {
+      el.classList.remove('typewriter');
+    }
+  }
+  setTimeout(type,800);
+})();
+</script>
+{% endblock %}

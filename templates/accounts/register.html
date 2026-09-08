@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% block no_dark_override %}<script>document.documentElement.classList.remove('dark');</script>{% endblock %}
+{% block title %}{{ T.register }} — StandardBridge{% endblock %}
+{% block extra_head %}
+<style>
+*{box-sizing:border-box}
+#auth-wrap{
+  min-height:100svh;
+  background:#f1f3f4;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:32px 16px 48px;
+  font-family:'Inter',sans-serif;
+}
+.auth-card{
+  width:100%;max-width:440px;
+  background:#fff;
+  border-radius:16px;
+  padding:36px 40px 32px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.08);
+}
+/* --- Header: lang right, logo center --- */
+.auth-topbar{
+  display:flex;justify-content:flex-end;
+  margin-bottom:20px;
+}
+.auth-head{text-align:center;margin-bottom:24px}
+.auth-head img{
+  width:52px;height:52px;border-radius:14px;
+  display:block;margin:0 auto 10px;
+}
+.auth-brand{font-size:17px;font-weight:800;color:#111;letter-spacing:-.3px}
+.auth-title{
+  font-size:24px;font-weight:800;color:#111;
+  letter-spacing:-.4px;text-align:center;margin:0 0 4px;
+}
+.auth-sub{color:#6b7280;font-size:14px;text-align:center;margin:0 0 24px}
+
+/* --- Role cards --- */
+.role-label{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.role-opt{
+  border:1.5px solid #e5e7eb;border-radius:12px;
+  padding:14px 12px;cursor:pointer;
+  transition:.18s;user-select:none;
+}
+.role-opt:hover{border-color:#93c5fd;background:#f8faff}
+.role-opt.sel{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.role-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.role-icon{font-size:22px;line-height:1}
+.role-check{
+  width:18px;height:18px;border-radius:50%;
+  background:#2563eb;
+  display:none;align-items:center;justify-content:center;flex-shrink:0;
+}
+.role-opt.sel .role-check{display:flex}
+.role-name{font-size:13px;font-weight:700;color:#111;margin-bottom:2px}
+.role-desc{font-size:11px;color:#6b7280;line-height:1.4}
+
+/* --- Form fields --- */
+.field{margin-bottom:13px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:#374151;margin-bottom:5px}
+.fi{
+  width:100%;background:#fff;
+  border:1.5px solid #e5e7eb;border-radius:10px;
+  padding:11px 13px;color:#111;font-size:14px;
+  outline:none;transition:.18s;
+  font-family:'Inter',sans-serif;
+  -webkit-appearance:none;
+}
+.fi:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fi::placeholder{color:#9ca3af}
+.hint{font-size:11px;color:#9ca3af;margin-top:3px}
+.sep{border:none;border-top:1px solid #f0f0f0;margin:16px 0}
+.submit{
+  width:100%;background:#2563eb;color:#fff;
+  font-weight:700;font-size:15px;
+  padding:13px;border-radius:10px;
+  border:none;cursor:pointer;transition:.18s;
+  margin-top:14px;font-family:'Inter',sans-serif;
+  letter-spacing:.01em;
+}
+.submit:hover{background:#1d4ed8}
+.submit:active{background:#1e40af}
+.err-msg{
+  background:#fef2f2;border:1px solid #fecaca;
+  color:#dc2626;border-radius:10px;
+  padding:10px 13px;font-size:13px;margin-bottom:14px;
+}
+.auth-link-row{text-align:center;color:#6b7280;font-size:14px;margin-top:18px}
+.auth-link-row a{color:#2563eb;font-weight:600;text-decoration:none}
+.auth-link-row a:hover{text-decoration:underline}
+.ref-toggle{
+  font-size:12px;color:#9ca3af;cursor:pointer;
+  text-align:center;margin-top:6px;display:block;
+  text-decoration:underline;text-underline-offset:2px;
+}
+.lb{
+  font-size:11px;font-weight:700;padding:4px 9px;
+  border-radius:6px;border:1.5px solid #e5e7eb;
+  cursor:pointer;background:#fff;color:#6b7280;transition:.15s;
+}
+.lb.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.lb:hover:not(.on){border-color:#2563eb;color:#2563eb}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="auth-wrap">
+  <div class="auth-card">
+
+    <!-- Til almashtiruvchi - yuqori o'ng -->
+    <div class="auth-topbar">
+      <form method="post" action="{% url 'set_language' %}" style="display:flex;gap:4px">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% for code, label in langs %}
+        <button type="submit" name="lang" value="{{ code }}" class="lb {% if current_lang == code %}on{% endif %}">{{ code|upper }}</button>
+        {% endfor %}
+      </form>
+    </div>
+
+    <!-- Logo - markazda -->
+    <div class="auth-head">
+      <img src="/static/icons/icon-96.png" alt="SB">
+      <div class="auth-brand">StandardBridge</div>
+    </div>
+
+    <h1 class="auth-title">{{ T.register_title }}</h1>
+    <p class="auth-sub">{{ T.register_subtitle }}</p>
+
+    {% if messages %}{% for message in messages %}
+    <div class="err-msg">{{ message }}</div>
+    {% endfor %}{% endif %}
+
+    <!-- Rol tanlash -->
+    <div class="role-label">{{ T.login_role_label }}</div>
+    <div class="role-grid">
+      <div class="role-opt sel" id="btn-entrepreneur" onclick="setRole('entrepreneur')">
+        <div class="role-top">
+          <span class="role-icon">🏭</span>
+          <div class="role-check" id="check-entrepreneur">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="role-name">{{ T.login_entrepreneur }}</div>
+        <div class="role-desc">{{ T.register_entrepreneur_desc }}</div>
+      </div>
+      <div class="role-opt" id="btn-expert" onclick="setRole('expert')">
+        <div class="role-top">
+          <span class="role-icon">👨‍💼</span>
+          <div class="role-check" id="check-expert" style="display:none">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="role-name">{{ T.login_expert }}</div>
+        <div class="role-desc">{{ T.register_expert_desc }}</div>
+      </div>
+    </div>
+
+    <!-- Forma -->
+    <form method="POST" id="registerForm">
+      {% csrf_token %}
+      <input type="hidden" name="role" id="roleInput" value="{{ form_data.role|default:'entrepreneur' }}">
+
+      <div class="field-row">
+        <div>
+          <label>{{ T.first_name }}</label>
+          <input class="fi" type="text" name="first_name" required
+                 value="{{ form_data.first_name }}" placeholder="Sardor" autocomplete="given-name">
+        </div>
+        <div>
+          <label>{{ T.last_name }}</label>
+          <input class="fi" type="text" name="last_name" required
+                 value="{{ form_data.last_name }}" placeholder="Karimov" autocomplete="family-name">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input class="fi" type="email" name="email" required
+               value="{{ form_data.email }}" placeholder="sardor@company.uz" autocomplete="email">
+      </div>
+
+      <div id="expert-phone" style="display:none">
+        <div class="field">
+          <label>{{ T.phone }}</label>
+          <input class="fi" type="tel" name="phone"
+                 value="{{ form_data.phone }}" placeholder="+998 90 123 45 67" autocomplete="tel">
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="field">
+        <label>{{ T.password }}</label>
+        <input class="fi" type="password" name="password" id="pw1" required
+               minlength="8" placeholder="••••••••" oninput="checkPw()" autocomplete="new-password">
+        <p class="hint" id="pw1-hint">{{ T.password_hint }}</p>
+      </div>
+      <div class="field">
+        <label>{{ T.password_confirm }}</label>
+        <input class="fi" type="password" name="password2" id="pw2" required
+               placeholder="••••••••" oninput="checkPw()" autocomplete="new-password">
+        <p class="hint" id="pw2-hint" style="display:none"></p>
+      </div>
+
+      {% if request.GET.ref %}
+      <input type="hidden" name="referral_code" value="{{ request.GET.ref }}">
+      {% endif %}
+
+      <button type="submit" class="submit">{{ T.register_btn }}</button>
+    </form>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;margin:20px 0;gap:10px;">
+      <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+      <span style="font-size:12px;color:#9ca3af;white-space:nowrap;">{{ T.login_or|default:"yoki" }}</span>
+      <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+    </div>
+
+    <!-- Google OAuth -->
+    <a href="{% url 'google_login' %}"
+       style="display:flex;align-items:center;justify-content:center;gap:10px;
+              width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;
+              background:#fff;color:#374151;font-size:15px;font-weight:600;
+              text-decoration:none;transition:.18s;"
+       onmouseover="this.style.borderColor='#4285f4';this.style.background='#f8faff'"
+       onmouseout="this.style.borderColor='#e5e7eb';this.style.background='#fff'">
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Google bilan ro'yxatdan o'tish
+    </a>
+
+    <p class="auth-link-row" style="margin-top:18px;">
+      {{ T.register_have_account }}
+      <a href="{% url 'login' %}">{{ T.register_login_link }}</a>
+    </p>
+    <p style="text-align:center;margin-top:10px">
+      <a href="{% url 'landing' %}" style="font-size:13px;color:#9ca3af;text-decoration:none">{{ T.back_home }}</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+function setRole(role) {
+  document.getElementById('roleInput').value = role;
+  var bE = document.getElementById('btn-entrepreneur');
+  var bX = document.getElementById('btn-expert');
+  var fP = document.getElementById('expert-phone');
+  var ckE = document.getElementById('check-entrepreneur');
+  var ckX = document.getElementById('check-expert');
+  if (role === 'entrepreneur') {
+    bE.className = 'role-opt sel'; bX.className = 'role-opt';
+    fP.style.display = 'none';
+    if (ckE) ckE.style.display = 'flex'; if (ckX) ckX.style.display = 'none';
+  } else {
+    bX.className = 'role-opt sel'; bE.className = 'role-opt';
+    fP.style.display = '';
+    if (ckX) ckX.style.display = 'flex'; if (ckE) ckE.style.display = 'none';
+  }
+}
+var savedRole = '{{ form_data.role|default:"entrepreneur" }}';
+if (savedRole === 'expert') setRole('expert');
+
+function checkPw() {
+  var p1 = document.getElementById('pw1');
+  var p2 = document.getElementById('pw2');
+  var h1 = document.getElementById('pw1-hint');
+  var h2 = document.getElementById('pw2-hint');
+  if (!p1 || !p2) return;
+  var len = p1.value.length;
+  if (len > 0 && len < 8) {
+    h1.textContent = '⚠ Kamida 8 ta belgi (' + len + '/8)';
+    h1.style.color = '#f59e0b';
+  } else if (len >= 8) {
+    h1.textContent = '✓ Yetarli';
+    h1.style.color = '#22c55e';
+  } else {
+    h1.textContent = '{{ T.password_hint }}';
+    h1.style.color = '#9ca3af';
+  }
+  if (p2.value.length > 0) {
+    h2.style.display = '';
+    if (p1.value === p2.value) {
+      h2.textContent = '✓ Parollar mos';
+      h2.style.color = '#22c55e';
+    } else {
+      h2.textContent = '✗ Mos emas';
+      h2.style.color = '#ef4444';
+    }
+  } else {
+    h2.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}
