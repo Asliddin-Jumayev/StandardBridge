@@ -6,5 +6,4 @@ build:
   requirementsPath: requirements.txt
 
 run:
-  persistencePath: /data
-  command: python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:80
+  script: manage.py runserver 0.0.0.0:80
