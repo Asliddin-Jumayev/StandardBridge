@@ -3,8 +3,6 @@ meta:
   toolchain:
     name: pip
     version: "3.11"
-build:
-  # Agar build uchun qo'shimcha skript kerak bo'lmasa, bu bo'sh qolishi mumkin yoki olib tashlanadi
 run:
   command: bash start.sh
 containerPort: 8000
